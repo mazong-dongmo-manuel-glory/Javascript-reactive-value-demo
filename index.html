@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Reactive Framework</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script>
+      // Déclaration de la variable qui va contenir la fonction utilisant une valeur réactive
+      let registerFunction = null;
+      // Fonction qui sera appelée à chaque modification de la valeur réactive
+      function watcher(fn) {
+        registerFunction = fn;
+        fn();
+        registerFunction = null;
+      }
+      // Classe qui permet de modifier la valeur réactive et d'appeler les fonctions qui l'utilisent
+      class Reactive {
+        constructor(value) {
+          this._value = value; // Valeur initiale
+          this.registers = new Set(); // Ensemble des fonctions qui utilisent la valeur réactive
+        }
+        get value() {
+          if (registerFunction) this.registers.add(registerFunction); // Si une fonction utilise la valeur, on l'enregistre
+          return this._value;
+        }
+        set value(newValue) {
+          // Lorsque la valeur réactive change, on exécute toutes les fonctions associées
+          this._value = newValue;
+          this.registers.forEach(register => register());
+        }
+      }
+
+      // Mise en application à travers un compteur
+      let count = new Reactive(0);
+      // Enregistrement de la fonction qui sera appelée à chaque modification de la variable
+      watcher(() => {
+        document.querySelector("#app").textContent = count.value;
+        // Au moment où on accède à la valeur, la fonction elle-même est enregistrée
+      });
+      setInterval(() => {
+        count.value++; // Lorsque la valeur change, toutes les fonctions associées sont appelées
+      }, 100);
+
+    </script>
+  </body>
+</html>
